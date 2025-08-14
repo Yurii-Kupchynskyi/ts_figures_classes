@@ -7,16 +7,18 @@ export interface Figure {
   getArea(): number;
 }
 
-function validLength(shapeType: ShapeType, a: number, b = 1, c = 1): boolean {
-  switch (shapeType) {
-    case 'circle':
-      return a > 0;
-    case 'rectangle':
-      return a > 0 && b > 0;
-    case 'triangle':
-      return a > 0 && b > 0 && c > 0 && a + b > c && a + c > b && b + c > a;
-    default:
-      throw new Error('You must provide a valid figure shape');
+function validatePositive(value: number, name: string): void {
+  if (value <= 0) {
+    throw new Error(`${name} must be greater than 0.`);
+  }
+}
+
+function validateTriangleInequality(a: number, b: number, c: number): void {
+  if (a + b <= c || a + c <= b || b + c <= a) {
+    throw new Error(
+      `Triangle sides do not satisfy the triangle inequality:
+       a + b <= c or a + c <= b or b + c <= a.`,
+    );
   }
 }
 
@@ -29,33 +31,15 @@ export class Triangle implements Figure {
     public b: number,
     public c: number,
   ) {
-    if (!validLength(this.shape, this.a, this.b, this.c)) {
-      throw new Error('Invalid triangle dimensions');
-    }
+    validatePositive(a, "Triangle side 'a'");
+    validatePositive(b, "Triangle side 'b'");
+    validatePositive(c, "Triangle side 'c'");
+    validateTriangleInequality(a, b, c);
   }
 
   getArea(): number {
     const s = (this.a + this.b + this.c) / 2;
     const area = Math.sqrt(s * (s - this.a) * (s - this.b) * (s - this.c));
-
-    return Math.round(area * 100) / 100;
-  }
-}
-
-export class Circle implements Figure {
-  public shape: ShapeType = 'circle';
-
-  constructor(
-    public color: ColorType,
-    public radius: number,
-  ) {
-    if (!validLength(this.shape, this.radius)) {
-      throw new Error('Invalid circle radius');
-    }
-  }
-
-  getArea(): number {
-    const area = Math.PI * this.radius * this.radius;
 
     return Math.floor(area * 100) / 100;
   }
@@ -69,13 +53,29 @@ export class Rectangle implements Figure {
     public width: number,
     public height: number,
   ) {
-    if (!validLength(this.shape, this.width, this.height)) {
-      throw new Error('Invalid rectangle dimensions');
-    }
+    validatePositive(width, 'Rectangle width');
+    validatePositive(height, 'Rectangle height');
   }
 
   getArea(): number {
-    return Math.round(this.width * this.height * 100) / 100;
+    return Math.floor(this.width * this.height * 100) / 100;
+  }
+}
+
+export class Circle implements Figure {
+  public shape: ShapeType = 'circle';
+
+  constructor(
+    public color: ColorType,
+    public radius: number,
+  ) {
+    validatePositive(radius, 'Circle radius');
+  }
+
+  getArea(): number {
+    const area = Math.PI * this.radius * this.radius;
+
+    return Math.floor(area * 100) / 100;
   }
 }
 
